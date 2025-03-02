@@ -1,0 +1,57 @@
+import numpy as np
+import skfuzzy as fuzz
+from skfuzzy import control as ctrl
+
+load = ctrl.Antecedent(np.arange(0, 11, 1), 'load')  
+dirt_level = ctrl.Antecedent(np.arange(0, 11, 1), 'dirt_level')  
+fabric_type = ctrl.Antecedent(np.arange(0, 11, 1), 'fabric_type ')  
+
+wash_time = ctrl.Consequent(np.arange(0, 61, 1), 'wash_time')
+water_level = ctrl.Consequent(np.arange(0, 11, 1), 'water_level')  
+
+load['small'] = fuzz.gaussmf(load.universe, 2, 3)
+load['medium'] = fuzz.gaussmf(load.universe, 5, 2)
+load['large'] = fuzz.gaussmf(load.universe, 8, 4)
+
+dirt_level['low'] = fuzz.gaussmf(dirt_level.universe, 2, 3)
+dirt_level['medium'] = fuzz.gaussmf(dirt_level.universe, 5, 3)
+dirt_level['high'] = fuzz.gaussmf(dirt_level.universe, 8, 3)
+
+fabric_type ['delicate'] = fuzz.gaussmf(fabric_type .universe, 2, 1)
+fabric_type ['normal'] = fuzz.gaussmf(fabric_type .universe, 5, 1)
+fabric_type ['heavy'] = fuzz.gaussmf(fabric_type .universe, 8, 1)
+
+wash_time['short'] = fuzz.gaussmf(wash_time.universe, 15, 5)
+wash_time['medium'] = fuzz.gaussmf(wash_time.universe, 30, 5)
+wash_time['long'] = fuzz.gaussmf(wash_time.universe, 45, 5)
+
+water_level['low'] = fuzz.gaussmf(water_level.universe, 1, 2)
+water_level['medium'] = fuzz.gaussmf(water_level.universe, 5, 2.5)
+water_level['high'] = fuzz.gaussmf(water_level.universe, 8, 2)
+
+rule1 = ctrl.Rule(load['small'] & dirt['low'], (wash_time['short'], water_level['low']))
+rule2 = ctrl.Rule(load['small'] & dirt['medium'], (wash_time['medium'], water_level['medium']))
+rule3 = ctrl.Rule(load['small'] & dirt['high'], (wash_time['long'], water_level['medium']))
+
+rule4 = ctrl.Rule(load['medium'] & dirt['low'], (wash_time['medium'], water_level['medium']))
+rule5 = ctrl.Rule(load['medium'] & dirt['medium'], (wash_time['long'], water_level['medium']))
+rule6 = ctrl.Rule(load['medium'] & dirt['high'], (wash_time['long'], water_level['high']))
+
+rule7 = ctrl.Rule(load['large'] & dirt['low'], (wash_time['medium'], water_level['high']))
+rule8 = ctrl.Rule(load['large'] & dirt['medium'], (wash_time['long'], water_level['high']))
+rule9 = ctrl.Rule(load['large'] & dirt['high'], (wash_time['long'], water_level['high']))
+
+rule10 = ctrl.Rule(fabric['delicate'], (wash_time['short'], water_level['low']))
+rule11 = ctrl.Rule(fabric['normal'], (wash_time['medium'], water_level['medium']))
+rule12 = ctrl.Rule(fabric['heavy'], (wash_time['long'], water_level['high']))
+
+rule13 = ctrl.Rule(load['large'] & dirt_level['high'] & fabric_type['heavy'], (wash_time['long'], water_level['high']))
+rule14 = ctrl.Rule(load['small'] & dirt_level['low'] & fabric_type['delicate'], (wash_time['short'], water_level['low']))
+rule15 = ctrl.Rule(load['medium'] & dirt_level['medium'] & fabric_type['normal'], (wash_time['medium'], water_level['medium']))
+
+washing_ctrl = ctrl.ControlSystem([rule1, rule2, rule3, rule4, rule5, rule6, rule7, rule8, rule9, rule10, rule11, rule12])
+
+washing_simulation = ctrl.ControlSystemSimulation(washing_ctrl)
+
+wash_time.view()
+
