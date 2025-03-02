@@ -1,0 +1,66 @@
+import numpy as np
+import skfuzzy as fuzz
+from skfuzzy import control as ctrl
+
+market_demand = ctrl.Antecedent(np.arange(0, 21, 1), 'market_demand')
+competitor_price = ctrl.Antecedent(np.arange(0, 21, 1), 'competitor_price')
+production_cost = ctrl.Antecedent(np.arange(0, 21, 1), 'production_cost')
+seasonality = ctrl.Antecedent(np.arange(0, 21, 1), 'seasonality')
+inventory_level = ctrl.Antecedent(np.arange(0, 21, 1), 'inventory_level')
+
+final_price = ctrl.Consequent(np.arange(0, 21, 1), 'final_price')
+
+market_demand['low'] = fuzz.trimf(market_demand.universe, [0, 0, 6])
+market_demand['medium'] = fuzz.trimf(market_demand.universe, [11, 13, 15])
+market_demand['high'] = fuzz.trimf(market_demand.universe, [15,17,19])
+
+competitor_price['low'] = fuzz.trimf(competitor_price.universe, [0, 0, 6])
+competitor_price['medium'] = fuzz.trimf(competitor_price.universe, [8,10,16])
+competitor_price['high'] = fuzz.trimf(competitor_price.universe, [16, 18,20])
+
+production_cost['low'] = fuzz.trimf(production_cost.universe, [0, 0, 8])
+production_cost['medium'] = fuzz.trimf(production_cost.universe, [10,12,14])
+production_cost['high'] = fuzz.trimf(production_cost.universe, [16,18,20])
+
+seasonality['off_peak'] = fuzz.trimf(seasonality.universe, [0, 0, 8])
+seasonality['normal'] = fuzz.trimf(seasonality.universe, [14,15,17])
+seasonality['peak'] = fuzz.trimf(seasonality.universe, [16,18,20])
+
+inventory_level['low'] = fuzz.trimf(inventory_level.universe, [0, 0, 8])
+inventory_level['medium'] = fuzz.trimf(inventory_level.universe, [8,10,11])
+inventory_level['high'] = fuzz.trimf(inventory_level.universe, [12,14,16])
+inventory_level['very_high'] = fuzz.trimf(inventory_level.universe, [17,19,20])
+
+final_price['very_low'] = fuzz.trimf(final_price.universe, [0, 0, 8])
+final_price['low'] = fuzz.trimf(final_price.universe, [1, 3, 5])
+final_price['medium'] = fuzz.trimf(final_price.universe, [4,6,8])
+final_price['high'] = fuzz.trimf(final_price.universe, [8, 12, 14])
+final_price['very_high'] = fuzz.trimf(final_price.universe, [16,18,20])
+
+rule1 = ctrl.Rule(market_demand['high'] & competitor_price['high'] & inventory_level['low'], final_price['very_high'])
+rule2 = ctrl.Rule(market_demand['high'] & seasonality['peak'] & inventory_level['low'], final_price['very_high'])
+rule3 = ctrl.Rule(market_demand['medium'] & production_cost['high'] & inventory_level['low'], final_price['very_high'])
+
+rule4 = ctrl.Rule(market_demand['high'] & competitor_price['medium'] & inventory_level['medium'], final_price['high'])
+rule5 = ctrl.Rule(market_demand['medium'] & competitor_price['high'] & inventory_level['low'], final_price['high'])
+rule6 = ctrl.Rule(market_demand['medium'] & seasonality['peak'] & inventory_level['medium'], final_price['high'])
+
+rule7 = ctrl.Rule(market_demand['medium'] & competitor_price['medium'] & inventory_level['medium'], final_price['medium'])
+rule8 = ctrl.Rule(market_demand['medium'] & competitor_price['high'] & inventory_level['medium'], final_price['medium'])
+rule9 = ctrl.Rule(market_demand['low'] & competitor_price['high'] & inventory_level['medium'], final_price['medium'])
+rule10 = ctrl.Rule(market_demand['medium'] & production_cost['medium'] & inventory_level['medium'], final_price['medium'])
+
+rule11 = ctrl.Rule(market_demand['low'] & competitor_price['low'] & inventory_level['high'], final_price['low'])
+rule12 = ctrl.Rule(market_demand['medium'] & production_cost['medium'] & inventory_level['high'], final_price['low'])
+rule13 = ctrl.Rule(market_demand['low'] & seasonality['off_peak'] & inventory_level['high'], final_price['low'])
+
+rule14 = ctrl.Rule(market_demand['low'] & competitor_price['low'] & inventory_level['very_high'], final_price['very_low'])
+rule15 = ctrl.Rule(market_demand['low'] & seasonality['off_peak'] & inventory_level['very_high'], final_price['very_low'])
+rule16 = ctrl.Rule(market_demand['medium'] & competitor_price['low'] & inventory_level['very_high'], final_price['very_low'])
+
+pricing_ctrl = ctrl.ControlSystem([rule1, rule2, rule3, rule4, rule5, rule6, rule7, rule8, rule9, rule10,rule11, rule12, rule13, rule14, rule15, rule16])
+
+pricing_simulation = ctrl.ControlSystemSimulation(pricing_ctrl)
+
+final_price.view()
+![Uploading image.png…]()
