@@ -1,0 +1,50 @@
+import numpy as np
+import skfuzzy as fuzz
+from skfuzzy import control as ctrl
+
+sentiment_score = ctrl.Antecedent(np.arange(0, 1.1, 0.1), 'sentiment_score')
+emotion_intensity = ctrl.Antecedent(np.arange(0, 1.1, 0.1), 'emotion_intensity')
+positive_words = ctrl.Antecedent(np.arange(0, 10, 1), 'positive_words')
+negative_words = ctrl.Antecedent(np.arange(0, 10, 1), 'negative_words')
+
+review_sentiment_classification = ctrl.Consequent(np.arange(0, 1.1, 0.1), 'review_sentiment_classification')
+
+ 
+sentiment_score['negative'] = fuzz.trimf(sentiment_score.universe, [0, 0, 0.3])
+sentiment_score['neutral'] = fuzz.trimf(sentiment_score.universe, [0.3, 0.4, 0.7])
+sentiment_score['positive'] = fuzz.trimf(sentiment_score.universe, [0.7, 0.9, 1])
+
+emotion_intensity['low'] = fuzz.trimf(emotion_intensity.universe, [0, 0, 0.3])
+emotion_intensity['medium'] = fuzz.trimf(emotion_intensity.universe, [0.3, 0.4, 0.7])
+emotion_intensity['high'] = fuzz.trimf(emotion_intensity.universe, [0.7, 0.8, 1])
+
+positive_words['few'] = fuzz.trimf(positive_words.universe, [0, 0, 2])
+positive_words['some'] = fuzz.trimf(positive_words.universe, [2, 4, 7])
+positive_words['many'] = fuzz.trimf(positive_words.universe, [5, 7, 9])
+
+negative_words['few'] = fuzz.trimf(negative_words.universe, [0, 0, 2])
+negative_words['some'] = fuzz.trimf(negative_words.universe, [1, 4, 5])
+negative_words['many'] = fuzz.trimf(negative_words.universe, [5, 7, 9])
+
+review_sentiment_classification['negative'] = fuzz.trimf(review_sentiment_classification.universe, [0, 0, 0.3])
+review_sentiment_classification['neutral'] = fuzz.trimf(review_sentiment_classification.universe, [0.3, 0.5, 0.7])
+review_sentiment_classification['positive'] = fuzz.trimf(review_sentiment_classification.universe, [0.7, 1, 1])
+
+rule1 = ctrl.Rule(sentiment_score['negative'] & emotion_intensity['high'], review_sentiment_classification['negative'])
+rule2 = ctrl.Rule(sentiment_score['negative'] & emotion_intensity['low'], review_sentiment_classification['neutral'])
+rule3 = ctrl.Rule(sentiment_score['neutral'] & emotion_intensity['medium'], review_sentiment_classification['neutral'])
+rule4 = ctrl.Rule(sentiment_score['positive'] & emotion_intensity['high'], review_sentiment_classification['positive'])
+
+rule5 = ctrl.Rule(positive_words['many'] & negative_words['few'], review_sentiment_classification['positive'])
+rule6 = ctrl.Rule(positive_words['few'] & negative_words['many'], review_sentiment_classification['negative'])
+rule7 = ctrl.Rule(positive_words['some'] & negative_words['some'], review_sentiment_classification['neutral'])
+
+rule8 = ctrl.Rule(sentiment_score['negative'] & negative_words['many'] & emotion_intensity['high'], review_sentiment_classification['negative'])
+rule9 = ctrl.Rule(sentiment_score['neutral'] & emotion_intensity['medium'] & positive_words['some'], review_sentiment_classification['neutral'])
+rule10 = ctrl.Rule(sentiment_score['positive'] & positive_words['many'] & emotion_intensity['high'], review_sentiment_classification['positive'])
+
+feedback_ctrl = ctrl.ControlSystem([rule1, rule2, rule3, rule4, rule5, rule6, rule7, rule8, rule9, rule10])
+
+feedback_simulation = ctrl.ControlSystemSimulation(feedback_ctrl)
+review_sentiment_classification.view()
+![image](https://github.com/user-attachments/assets/c5bec5d6-729f-40c3-aa14-2a7eddac1021)
